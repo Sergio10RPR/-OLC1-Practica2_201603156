@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="estilos.css">
+    <title>PRACTICA_2_OLC1</title>
+  
+</head>
+<body>
+    <header id="titulo"><h1>PRACTICA 2-TRADUCTOR</h1></header>
+    <br>
+   <nav id="botones">
+      <button type="button" id="btnAnalizar"  onclick="metodo();">LEXICO</button> 
+      <button type="button" id="btnAnalizarSintactico" onclick="Sintactico();">SINTACTICO</button> 
+      <button type="button" id="btnTraducir" onclick="TRADUCIR();">TRADUCIR</button>
+      <button type="button" id="btnHtml" onclick="MOSTRAR();">HTML</button> 
+   </nav>
+   
+   <section id="area1">
+       
+       <textarea id="txtEntrada" cols="60" rows="32"></textarea>
+       <textarea id="txtSalida" cols="60" rows="32"></textarea>
+       <footer id="bitacora">
+        <textarea id="txtBitacora" cols="120" rows="20"></textarea>
+    </footer>
+   </section>
+   
+   <script>
+       var variables="";
+       var variables2="";
+       var tipo="";
+       var arrayTokens= [];
+       var arrayTokens2=[];
+       var arrayLexemas=[];
+       var arrayErrores=[];
+       var python="";
+       var con=0;
+       var preanalisis=[]; //Array
+       var erroresSintacticos=[];
+       var salida2="";
+       var conSwi=0;
+       var html="";
+       function metodo(){
+
+          
+          
+           var entrada=document.getElementById("txtEntrada").value+" "; //Captura el texto
+           var pos=-1;
+           var estado=0;
+           var token="";
+           var lexema="";
+           var salida="";
+           while(pos<entrada.length-1){
+                pos++;
+                var caracter=entrada.charCodeAt(pos);
+                switch(estado){
+                    case 0:
+                        if(caracter==40){
+                            lexema+="(";
+                            token="PARENTESIS_IZQ";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+                        }
+                        else if(caracter==41){
+                            lexema+=")";
+                            token="PARENTESIS_DER";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+                        }
+                        ///CARCATERES =,;{ }
+                        //;
+                        else if(caracter==59){
+                            lexema+=";";
+                            token="PUNTO_Y_COMA";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+                        }
+                        //=
+                        else if(caracter==61){
+                            estado=10;
+                            lexema+=String.fromCharCode(caracter);
+                        }
+                        //,
+                        else if(caracter==44){
+                            lexema+=",";
+                            token="SIGNO_COMA";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+                        }
+                        //{
+                        else if(caracter==123){
+                            lexema+="{";
+                            token="APERTURA";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+
+                        }
+                        else if(caracter==58){
+                            lexema+=":";
+                            token="DOS_PUNTOS";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+
+
+                        }
+                        //}
+                        else if(caracter==125){
+                            lexema+="}";
+                            token="CERRADURA";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+
+                        }
+                        //+
+                        else if(caracter==43){
+                            lexema+="+";
+                            token="SUMA";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+
+                        }
+                        //-
+                        else if(caracter==45){
+                            lexema+="-";
+                            token="RESTA";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+
+                        }
+                        //Multiplicacion *
+                        else if(caracter==42){
+                            lexema+="*";
+                            token="MULTIPLICACION";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+
+                        }
+                        //Division, Diferenciar con comentario
+                        /*else if(caracter==47){
+                            lexema+="*";
+                            token="MULTIPLICACION";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+
+                        }*/
+                        ///////////////OPERADORES LOGICOS///////////////////
+                        //&& and
+                        else if(caracter==38){
+                            estado=6;
+                            lexema+=String.fromCharCode(caracter);
+
+                        }
+                        // | or
+                        else if(caracter==124){
+                            estado=7;
+                            lexema+=String.fromCharCode(caracter);
+                        }
+                        // ! not
+                        else if(caracter==33){
+                            estado=11;
+                            lexema+=String.fromCharCode(caracter);
+                            
+                        }
+                        //OPERADORES RELACIONALES 
+                        //>
+                        else if(caracter==62){
+                           estado=8;
+                           lexema+=String.fromCharCode(caracter);
+
+                        }
+                        else if(caracter==60){
+                            estado=9;
+                            lexema+=String.fromCharCode(caracter);
+
+                        }
+                        // /
+                        else if(caracter==47){
+                            estado=5;
+                            lexema+=String.fromCharCode(caracter);
+
+                        }
+                        //Letras
+                        else if((caracter>=65 && caracter<=90) || (caracter>=97 && caracter<=122)){
+                            estado=1;
+                            lexema+=String.fromCharCode(caracter);
+                        }
+                        else if(caracter==32){
+
+                        }
+                        // comillas dobles
+                        else if(caracter==34){
+                            estado=12;
+                            lexema+=String.fromCharCode(caracter);
+                           
+                        }
+                        //Comillas simples ''
+                        else if(caracter==39){
+                            estado=14;
+                            lexema+=String.fromCharCode(caracter);
+                            /*lexema+="'";
+                            token="APOSTROFO";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";*/
+                        }
+                        //Salto de linea
+                        else if(caracter==10){
+                            //arrayTokens2.push(String.fromCharCode(caracter));
+                        }
+                        //Tabulacion Horizontal
+                        else if(caracter==9){
+
+                        }
+                        //Retorno de Carro
+                        else if(caracter==13){
+
+                        }
+                        //Numeros
+                        else if(caracter>=48 && caracter<=57){
+                            estado=2;
+                            lexema+=String.fromCharCode(caracter);
+                        }
+                        else{
+                            arrayErrores.push("TOKEN NO RECONOCIDO"+String.fromCharCode(caracter));
+                        }
+                        break;
+                        case 1:
+                            //Letras
+                            if((caracter>=65 && caracter<=90) || (caracter>=97 && caracter<=122)){
+                                estado=1;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else if(caracter==95){ //_
+                                estado=4; // ID
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else if(caracter==46){
+                                estado=1;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else if(caracter>=48 && caracter<=57){
+                                estado=1;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            //#region
+                            else{
+                                /////////Tipos de Datos///////
+                                if(lexema=="int"){
+                                    token="TIPO_DE_DATO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                else if(lexema=="class"){
+                                    token="CLASE";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="double"){
+                                    token="TIPO_DE_DATO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="char"){
+                                    token="TIPO_DE_DATO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="bool"){
+                                    token="TIPO_DE_DATO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="string"){
+                                    token="TIPO_DE_DATO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="String"){
+                                    token="TIPO_DE_DATO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                ///DECLARACION DE METODO////////
+                                else if(lexema=="void"){
+                                    token="DECLARACION_METODO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                ///SENTENCIAS DE CONTROL///////
+                                else if(lexema=="if"){
+                                    token="SENTENCIA_IF";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="switch"){
+                                    token="SENTENCIA_SWITCH";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                else if(lexema=="else"){
+                                    token="SENTENCIA_ELSE";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                ///PALABRAS RESERVADAS///
+                                else if(lexema=="for"){
+                                    token="SENTENCIA_FOR";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                else if(lexema=="while"){
+                                    token="SENTENCIA_WHILE";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="do"){
+                                    token="SENTENCIA_DO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="return"){
+                                    token="SENTENCIA_RETURN";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="break"){
+                                    token="SENTENCIA_BREAK";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="continue"){
+                                    token="SENTENCIA_CONTINUE";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="false"){
+                                    token="SENTENCIA_FALSE";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                else if(lexema=="true"){
+                                    token="SENTENCIA_TRUE";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                //MAIN
+                                else if(lexema=="main"){
+                                    token="MAIN";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                else if(lexema=="Console.Write"){
+                                    //estado=12;
+
+                                    token="SENTENCIA_IMPRIMIR";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                    
+                                    //lexema+=String.fromCharCode(caracter);
+
+                                }
+                                else if(lexema=="default"){
+                                    token="SENTENCIA_DEFAULT";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                }
+                                else if(lexema=="case"){
+
+                                    token="SENTENCIA_CASE";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                }
+                                else{
+                                    token="ID";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+
+                                }
+                            
+                            }
+                            break;
+                            //#endregion
+                        case 2:
+                            if(caracter>=48 && caracter<=57){
+                                estado=2;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else if(caracter==46){ //Si viene un punto
+                                estado=3;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else{
+                            token="NUMERO";
+                            arrayTokens.push(token);
+                            arrayLexemas.push(lexema);
+                            lexema="";
+                            estado=0;
+                            pos--;
+
+                            }
+                            break;
+                        case 3:
+                            if(caracter>=48 && caracter<=57){
+                                estado=19;
+                                lexema+=String.fromCharCode(caracter);
+                                
+
+                            }
+                            else{
+                                arrayErrores.push("Se esperaba un numero despues del punto "+String.fromCharCode(caracter));
+                                estado=0;
+                            }
+                            break;
+                        case 4:
+                            if((caracter>=65 && caracter<=90) || (caracter>=97 && caracter<=122)){
+                                estado=4;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else if(caracter>=48 && caracter<=57){
+                                estado=4;
+                                lexema+=String.fromCharCode(caracter);
+                            }else{
+                                token="ID";
+                                arrayTokens.push(token);
+                                arrayLexemas.push(lexema);
+                                lexema="";
+                                estado=0;
+                                pos--;
+                            }
+                            break;
+                            /////////////////////////COMENTARIO//////////////////////////
+                        case 5:
+                            //Si viene otra /
+                            if(caracter==47){
+                                estado=20;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else if(caracter==42){
+                                estado=16;
+                                lexema+=String.fromCharCode(caracter);
+                            }
+                            else{
+                                token="DIVISION";
+                                arrayTokens.push(token);
+                                arrayLexemas.push(lexema);
+                                lexema="";
+                                estado=0;
+                                pos--;
+                            }
+                            //*
+                           
+                           
+                            break;
+                            case 6:
+                                if(caracter==38){
+                                    estado=22;
+                                    lexema+=String.fromCharCode(caracter);
+                                   
+                                }
+                                else{
+                                    arrayErrores.push("SE ESPERABA & DESPUES DE &"+String.fromCharCode(caracter));
+                                    estado=0;
+                                    
+                                    //Posible error de AND &&
+                                }
+
+                                break;
+                            case 7:
+                                if(caracter==124){
+                                    estado=21;
+                                    lexema+=String.fromCharCode(caracter);
+                                   
+                                }
+                                else{
+                                    arrayErrores.push("SE ESPERABA | DESPUES DE |"+String.fromCharCode(caracter));
+                                    estado=0;
+                                   
+
+                                }
+                                break;
+                                case 8:
+                                // =
+                                if(caracter==61){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=8;
+                                    
+                                    //Me almacena dos iguales, no pasa si lo coloco en el else solo si lo coloco en el if
+                                    //si solo pongo > igual me lo acepta
+                                }
+                                else{
+                                    if(lexema==">="){
+                                    token="OPERADOR_RELACIONAL";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                    }
+                                    else{
+                                    token="OPERADOR_RELACIONAL";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                    }
+                                    
+
+                                }
+                                break;
+                                case 9:
+                                // =
+                                if(caracter==61){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=9;
+                                    
+                                    //Me almacena dos iguales, no pasa si lo coloco en el else solo si lo coloco en el if
+                                    //si solo pongo > igual me lo acepta
+                                }
+                                else{
+                                    if(lexema=="<="){
+                                    token="OPERADOR_RELACIONAL";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                    }
+                                    else{
+                                    token="OPERADOR_RELACIONAL";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                    }
+                                
+                               }
+                               break;
+                               case 10:
+                               if(caracter==61){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=10;
+                                    
+                                    //Me almacena dos iguales, no pasa si lo coloco en el else solo si lo coloco en el if
+                                    //si solo pongo > igual me lo acepta
+                                }
+                                else{
+                                    if(lexema=="=="){
+                                    token="OPERADOR_RELACIONAL";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                    }
+                                    else{
+                                    token="SIGNO_IGUAL";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                    }
+                                }
+                               
+                               break;
+                               case 11:
+                               if(caracter==61){
+                                    estado=11;
+                                    lexema+=String.fromCharCode(caracter);
+
+                               }else{
+                                if(lexema=="!="){
+                                    //token="DISTINTO";
+                                    token="OPERADOR_RELACIONAL";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                    }
+                                    else{
+                                    token="OPERADOR_LOGICO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                    }
+
+                               }
+                               break;
+                               //Cadenas
+                               case 12:
+                               if((caracter>=65 && caracter<=90) || (caracter>=97 && caracter<=122)){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=12;
+                               }
+                               else if(caracter>=48 && caracter<=57){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=12;
+
+                               }
+                               else if((caracter>=35 && caracter<=47) || (caracter>=58 && caracter<=64)||(caracter>=91 && caracter<=96)||
+                                        caracter==33 || (caracter>=123 && caracter<=126)){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=12;
+                                    
+
+                                    
+                                }
+                               else if(caracter==34){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=13;
+                               }
+                               else if(caracter==32){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=12;
+                               }
+                               /*else if(caracter==32){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=12;
+
+                               }*/
+                             
+                               
+                               /*else{
+                                    token="CADENA";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                               }*/
+                               break;
+                               case 13:
+                                    token="CADENA";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                break;
+                                case 14:
+                                if((caracter>=65 && caracter<=90) || (caracter>=97 && caracter<=122)){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=14;
+                               }
+                               else if(caracter>=48 && caracter<=57){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=14;
+
+                               }
+                               else if((caracter>=33 && caracter<=38) || (caracter>=40 && caracter<=47)||(caracter>=58 && caracter<=64)||
+                                        (caracter>=91 && caracter<=96)||(caracter>=123 && caracter<=126)){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=14;
+                                    
+
+                                    
+                                }
+                               else if(caracter==39){
+                                    lexema+=String.fromCharCode(caracter);
+                                    estado=15;
+                               }
+                               
+                                break;
+                                case 15:
+                                    token="CADENA_CHAR";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                break;
+                                case 16:
+                                    if((caracter>=32 && caracter<=41)||(caracter>=48 && caracter<=126)||caracter==10
+                                       ||(caracter>=43 && caracter<=46)){
+                                        lexema+=String.fromCharCode(caracter);
+                                        estado=16;
+                                    }
+                                    //*
+                                    else if(caracter==42){
+                                        lexema+=String.fromCharCode(caracter);
+                                        estado=17;
+                                    }
+                                break;
+                                case 17:
+                                    if(caracter==42){
+                                        lexema+=String.fromCharCode(caracter);
+                                        estado=17;
+                                    }
+                                    else if((caracter>=32 && caracter<=41)||(caracter>=48 && caracter<=126)||caracter==10
+                                       ||(caracter>=43 && caracter<=46)){
+                                        lexema+=String.fromCharCode(caracter);
+                                        estado=17;
+                                    }
+                                // /
+                                    else if(caracter==47){
+                                    estado=18;
+                                    lexema+=String.fromCharCode(caracter);
+                                    
+                                    }
+                                    break;
+                                    case 18:
+                                    token="COMENTARIO_MULTILINEA";
+                                    //arrayTokens.push(token);
+                                    //arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+
+                                    break;
+                                    case 19:
+                                    if(caracter>=48 && caracter<=57){
+                                        estado=19;
+                                        lexema+=String.fromCharCode(caracter);
+                                    }
+                                    else{
+                                        token="NUMERO";
+                                        arrayTokens.push(token);
+                                        arrayLexemas.push(lexema);
+                                        lexema="";
+                                        estado=0;
+                                        pos--;
+                                    }
+                                    break;
+                                    case 20:
+                                    if((caracter>=65 && caracter<=90) || (caracter>=97 && caracter<=122)){
+                                    estado=20;
+                                    lexema+=String.fromCharCode(caracter);
+                                    }
+                                    else if(caracter>=33 &&caracter<=126){
+                                    estado=20;
+                                    lexema+=String.fromCharCode(caracter);
+
+                                    }
+                                    else if(caracter==32){
+                                    estado=20;
+                                    lexema+=String.fromCharCode(caracter);
+                                    }
+                                    else{
+                               
+                                    token="COMENTARIO_UNA_LINEA";
+                                    //arrayTokens.push(token);
+                                    //arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                
+                                
+                                
+                            }
+                                    break;
+                                    case 21:
+                                    //token="OR";
+                                    token="OPERADOR_LOGICO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                    break;
+
+                                    case 22:
+                                    //token="AND";
+                                    token="OPERADOR_LOGICO";
+                                    arrayTokens.push(token);
+                                    arrayLexemas.push(lexema);
+                                    lexema="";
+                                    estado=0;
+                                    pos--;
+                                    break;
+
+
+                              
+                }
+            }
+           //alert(salida);
+           for(i in arrayTokens){
+                salida=salida+"TOKEN->"+arrayTokens[i]+" LEXEMA-> "+arrayLexemas[i] + "\n";
+           }
+          
+           for(j in arrayErrores){
+                salida=salida+"ERRORES->"+arrayErrores[j]+"\n";
+           }
+           document.getElementById("txtSalida").value=salida;
+           
+          
+       }
+       /******************************************************************************/
+       ////////////////////////// INICIO DEL SINTACTICO ///////////////////////////////
+       ////////////////////////////////////////////////////////////////////////////////
+       /******************************************************************************/
+       function Sintactico(){
+         
+           //var salida2="";
+           //Clonar arrays
+           for(i in arrayTokens){
+               if(arrayTokens[i]=="COMENTARIO_UNA_LINEA" || arrayTokens[i]=="COMENTARIO_MULTILINEA"){
+
+               }else{
+                preanalisis.push(arrayTokens[i]);
+               }
+               }
+           A();
+           for(i in erroresSintacticos){
+            salida2=salida2+erroresSintacticos[i]+"\n";
+           }
+           if(erroresSintacticos.length==0){
+            document.getElementById("txtBitacora").value="NO HAY ERRORES SINTACTICOS"+"\n\n\n"+"TABLA DE VARIABLES"+"\n"+variables+"\n"+variables2;
+           }else{
+            document.getElementById("txtBitacora").value=salida2;
+           }
+            //document.getElementById("txtB");
+          }
+       /*A->class id {B}*/
+       function A(){
+
+           /*if(preanalisis[con]=="CLASE"){
+                con++;
+           }else{
+                erroresSintacticos.push("Se esperaba class");
+                con++;
+           }
+           if(preanalisis[con]=="ID"){
+                con++;
+           }else{
+                erroresSintacticos.push("Se esperaba un ID");
+                con++;
+           }
+           if(preanalisis[con]=="APERTURA"){
+                con++;
+           }else{
+                erroresSintacticos.push("Se esperaba {");
+                con++;
+           }*/
+           B();
+           //alert("DESPUES DE B " + preanalisis[con]);
+           /*if(preanalisis[con]=="CERRADURA"){
+                con++;
+           }else{
+                erroresSintacticos.push("Se esperaba }");
+                con++;
+           }*/
+           
+       }
+       //B->C
+       function B(){
+           C();//Declaracion de variables y funciones
+           MET(); //Metodos de la forma void id(){}
+           IMP(); //Sentencia Console.Write("cadena" + id | numero);
+           SECR(); //Sentencias de control y repeticion
+       }
+       //C->TIPO_DE_DATO D
+       function C(){
+            if(preanalisis[con]=="TIPO_DE_DATO"){ //int,char,double,bool
+                
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"var")+" ";
+                con++;
+                D();
+            }
+            else if(preanalisis[con]=="ID"){
+               
+                python=python+arrayLexemas[con];
+                con++;
+                EE();
+            }
+            else{
+
+            }
+            
+       }
+       function D(){
+           if(preanalisis[con]=="ID"){
+                //variables=variables+arrayLexemas[con]+" ";
+                python=python+arrayLexemas[con];
+                con++;
+                EE();
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un ID");
+                con++;
+           }
+       }
+       function EE(){
+           if(preanalisis[con]=="SIGNO_IGUAL"){
+                 //alert(arrayLexemas[con-2]);
+                 //variables2=variables2+arrayLexemas[con-2]+" "+arrayLexemas[con-1]+"\n";
+                //python=python+arrayLexemas[con-2].replace(arrayLexemas[con-2],"var")+" ";
+                //python=python+arrayLexemas[con-1];
+                python=python+arrayLexemas[con];
+                con++;
+                EX(); //Expresion
+            }else if(preanalisis[con]=="PARENTESIS_IZQ"){
+                python=python.replace("var "+arrayLexemas[con-1],"")
+                //F()  funciones forma int id()
+                //alert("QUE MUESTRA "+" "+arrayLexemas[con-2]);
+                python=python+arrayLexemas[con-2].replace(arrayLexemas[con-2],"def")+" ";
+                python=python+arrayLexemas[con-1];
+                python=python+arrayLexemas[con];
+                //python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+                con++;
+                //alert("antes de entrar F()"+preanalisis[con]);
+                F();
+            }
+            else if(preanalisis[con]=="SIGNO_COMA"){
+                //alert(arrayLexemas[con-2]+arrayLexemas[con-1]);
+                //variables=variables+" "+arrayLexemas[con-2]+" "+arrayLexemas[con-1];
+                python=python+arrayLexemas[con];
+                con++;
+                D();
+            }
+            else if(preanalisis[con]=="PUNTO_Y_COMA"){
+                //tipo="";
+                con++;
+                //C();
+                B();
+            }
+       }
+       /*E-> = EX | ( F | , D   */
+       function E(){
+            if(preanalisis[con]=="SIGNO_IGUAL"){
+                python=python+arrayLexemas[con-2].replace(arrayLexemas[con-2],"var")+" ";
+                python=python+arrayLexemas[con-1];
+                python=python+arrayLexemas[con];
+                con++;
+                EX(); //Expresion
+            }else if(preanalisis[con]=="PARENTESIS_IZQ"){
+                //F()  funciones forma int id()
+                //alert("QUE MUESTRA "+" "+arrayLexemas[con-2]);
+                python=python+arrayLexemas[con-2].replace(arrayLexemas[con-2],"def")+" ";
+                python=python+arrayLexemas[con-1];
+                python=python+arrayLexemas[con];
+                //python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+                con++;
+                //alert("antes de entrar F()"+preanalisis[con]);
+                F();
+            }
+            else if(preanalisis[con]=="SIGNO_COMA"){
+                //python=python+arrayLexemas[con-1].replace(arrayLexemas[con-1],"var");
+                python=python+arrayLexemas[con];
+                con++;
+                D();
+            }
+            else if(preanalisis[con]=="PUNTO_Y_COMA"){
+                con++;
+                //C();
+                B();
+            }
+       }
+       //Expresion despues de la declaracion de la variable int a= expresion;
+       //EX->num G | id G
+       function EX(){
+            if(preanalisis[con]=="NUMERO"){
+                //con++;
+                Ee();
+                //alert("NUMERO");
+                G();
+            }else if(preanalisis[con]=="CADENA"){
+                python=python+arrayLexemas[con];
+                con++;
+                G();
+            }
+            else if(preanalisis[con]=="CADENA_CHAR"){
+                python=python+arrayLexemas[con];
+                con++;
+                G();
+            }
+            else if(preanalisis[con]=="CADENA_CHAR"){
+                python=python+arrayLexemas[con];
+                con++;
+                G();
+            }
+            else if(preanalisis[con]=="SENTENCIA_TRUE"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"True");
+                con++;
+                G();
+            }
+            else if(preanalisis[con]=="SENTENCIA_FALSE"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"False");
+                con++;
+                G();
+            }
+            else if(preanalisis[con]=="ID"){ //Despues del id puede que sea una llamda a un metodo
+                //con++;
+                //python=python+arrayLexemas[con];
+                if(preanalisis[con+1]=="PARENTESIS_IZQ"){
+                python=python+arrayLexemas[con];
+                 con++;
+                 //alert(preanalisis[con]);
+                 LLA(); //Llamada a un metodo;
+                }
+                else{
+                    Ee();
+                    G();
+                }
+               
+
+            }
+            else if(preanalisis[con]=="PARENTESIS_IZQ"){
+                Ee();
+                G();
+            }
+            /*else if(preanalisis[con]=="CADENA_CHAR"){ true y false
+                con++;  
+                G();
+            }*/
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba una expresion");
+                con++;
+            }
+       }
+       //////////////////////VERIFICAR SI ES UNA LLAMADA A UN METODO///////////////
+       function LLA(){
+           if(preanalisis[con]=="PARENTESIS_IZQ"){
+               python=python+arrayLexemas[con];
+               con++;
+               //Entra a este metodo con un id,num ó (
+               LLAC(); //( Argumento
+           }
+           if(preanalisis[con]=="PARENTESIS_DER"){
+                python=python+arrayLexemas[con];
+                con++;
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba una )");
+                con++;
+           }
+           if(preanalisis[con]=="PUNTO_Y_COMA"){
+                con++;
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba una ;");
+                con++;
+           }
+       }
+       function LLAC(){
+           EXPRESIONEs();
+           //con++;
+           LLAD();
+
+        }
+        function LLAD(){
+            if(preanalisis[con]=="SIGNO_COMA"){
+                python=python+arrayLexemas[con];
+                con++;
+                LLAC();
+            }
+            else{
+
+            }
+        }
+       /////////////////////////////////////////////////////////////////////////////
+       ////////////////////EXPRESIONES DE LA FORMA   (2+4)-8^3+(12*5-(4/2))/////////
+       /////////////////////////////////////////////////////////////////////////////
+       function EXPRESIONEs(){
+            if(preanalisis[con]=="NUMERO"){
+                Ee();
+            }else if(preanalisis[con]=="PARENTESIS_IZQ"){
+                Ee();
+            }else if(preanalisis[con]=="ID"){
+                Ee();
+            }
+            else{
+
+            }
+
+       }
+       function Ee(){
+           Tt();
+           Ep();
+       }
+       function Ep(){
+           if(preanalisis[con]=="SUMA"){
+            python=python+arrayLexemas[con];
+            con++;
+            Tt();
+            Ep();
+            }
+            else if(preanalisis[con]=="RESTA"){
+            python=python+arrayLexemas[con];
+            con++;
+            Tt();
+            Ep();
+            }
+            else{
+                //Epsilon
+            }
+           
+       }
+       function Tt(){
+           Ff();
+           Tp();
+       }
+       function Tp(){
+        if(preanalisis[con]=="MULTIPLICACION"){
+            python=python+arrayLexemas[con];
+            con++;
+            Ff();
+            Tp();
+            }
+            else if(preanalisis[con]=="DIVISION"){
+            python=python+arrayLexemas[con];
+            con++;
+            Ff();
+            Tp();
+            }
+            else{
+                //Epsilon
+            }
+
+       }
+       function Ff(){
+           if(preanalisis[con]=="PARENTESIS_IZQ"){
+                python=python+arrayLexemas[con];
+                con++;
+                Ee();
+           }
+           
+           if(preanalisis[con]=="PARENTESIS_DER"){
+                python=python+arrayLexemas[con];
+                con++;
+           }
+           
+           else{
+            if(preanalisis[con]=="NUMERO"){
+                   python=python+arrayLexemas[con];
+                   con++;
+                   //alert("ENTRA?");
+
+               }
+            else if(preanalisis[con]=="ID"){
+                python=python+arrayLexemas[con];
+                con++;
+            }
+            
+           }
+           
+           
+
+       }
+       function emparejar(){
+
+       }
+       ///FIN
+       /////////////////////////////////////////////////////////////////////////////
+       ////////////////////EXPRESIONES DE LA FORMA   (2+4)-8^3+(12*5-(4/2))/////////
+       /////////////////////////////////////////////////////////////////////////////
+       //G-> ; C
+       function G(){
+           //alert(preanalisis[con]);
+            if(preanalisis[con]=="PUNTO_Y_COMA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"")+"\n";
+                con++;
+                B();
+            }
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un punto y coma");
+                con++;
+            }
+       }
+       //F->H){I}
+       function F(){
+           H();
+           //alert("antes de entrar H()"+preanalisis[con])
+           if(preanalisis[con]=="PARENTESIS_DER"){
+                python=python+arrayLexemas[con];
+                con++;
+           }else{
+               erroresSintacticos.push("Se esperaba )");
+               con++;
+           }
+           if(preanalisis[con]=="APERTURA"){
+               python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+               con++;
+
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba {");
+                con++;
+           }
+           I(); //Sentencias dentro de la funcion
+           if(preanalisis[con]=="CERRADURA"){
+                con++;
+           }else{
+           erroresSintacticos.push(arrayLexemas[con]+" Se esperaba }");
+           con++;
+           }
+           B();
+
+       }
+       //H->Tipo_Dato J | epsilon
+       function H(){
+            if(preanalisis[con]=="TIPO_DE_DATO"){
+                con++;
+                J();
+            }else{
+               
+            }
+            
+       }
+       //H->ID K
+       function J(){
+           //Despues de un tipo de dato fijo tiene que venir un id
+            if(preanalisis[con]=="ID"){
+                con++;
+            }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba ID");
+                con++;
+            }
+            K();
+       }
+       function K(){
+            if(preanalisis[con]=="SIGNO_COMA"){
+                con++;
+                H(); //Si viene un signo coma es porque viene otro parametro
+            }else{
+
+            }
+       }
+       function I(){ //Lo que puede venir dentro de una funcion o metodo
+           B();//Ver que puede y no venir
+           if(preanalisis[con]=="SENTENCIA_RETURN"){
+                python=python+arrayLexemas[con]+" "; //return
+                con++;
+                RET();
+           }
+           else{
+
+           }
+           
+       }
+       function RET(){
+           EXPRESIONEs();
+           if(preanalisis[con]=="PUNTO_Y_COMA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"");
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba ;");
+                con++;
+
+           }
+           python=python+"\n";
+       }
+
+       //AREA DE METODOS DE LA FORMA VOID ID_(PARAMETRO | NO PARAMETROS){INS}
+       //MET->void L | epsilon
+       function MET(){
+           //alert(preanalisis[con]);
+           if(preanalisis[con]=="DECLARACION_METODO"){ //Si viene la palabra reservada void
+                con++;
+                L();
+           }else{
+
+           }
+       }
+       function L(){
+          // alert(preanalisis[con]);
+           if(preanalisis[con]=="ID"){
+            con++;
+            //alert("ANTES DE ENTRAR A E()"+preanalisis[con]);
+            E();
+           }
+           else if(preanalisis[con]=="MAIN"){
+            con++;
+            //alert("ANTES DE ENTRAR A E()"+preanalisis[con]);
+            E();
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba ID o MAIN");
+                con++;
+           }
+           
+
+
+       }
+       //////////////////////////////////////////////////////////////////////////////
+       //////////////////////////////////CONSOLE.WRITE()/////////////////////////////
+       //////////////////////////////////////////////////////////////////////////////
+       function IMP(){
+        //alert(preanalisis[con]);
+        if(preanalisis[con]=="SENTENCIA_IMPRIMIR"){
+            python=python+arrayLexemas[con].replace(arrayLexemas[con],"print");
+            con++;
+            N();
+        }
+        else{
+            //Epsilon
+            //alert("Segunda llamada "+preanalisis[con]);
+        }
+       }
+       function N(){
+           //alert(preanalisis[con]);
+           if(preanalisis[con]=="PARENTESIS_IZQ"){
+              python=python+arrayLexemas[con];
+              con++;
+              O();
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba (");
+                con++;
+           }
+       }
+       function O(){
+           //alert(preanalisis[con]);
+           if(preanalisis[con]=="CADENA"){
+               python=python+arrayLexemas[con];
+               con++;
+               P();
+            
+
+           }else if(preanalisis[con]=="NUMERO"){
+               python=python+arrayLexemas[con];
+               con++;
+               P();
+               
+
+           }
+           else if(preanalisis[con]=="CADENA_CHAR"){
+               python=python+arrayLexemas[con];
+               con++;
+               P();
+               
+           }
+           else if(preanalisis[con]=="ID"){
+               python=python+arrayLexemas[con];
+               con++;
+               P();
+               
+           }
+           else{
+               //Posible error
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un argumento");
+                con++;
+
+           }
+       }
+       function P(){
+           //alert(preanalisis[con]);
+            if(preanalisis[con]=="PARENTESIS_DER"){
+                python=python+arrayLexemas[con];
+                con++;
+                Q();
+            }
+            else if(preanalisis[con]=="SUMA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],",");
+                con++;
+                O();
+            }
+            else{
+                //Epsilon
+            }
+       }
+       function Q(){
+           //alert("Al entrar a Q() "+preanalisis[con]);
+           if(preanalisis[con]=="PUNTO_Y_COMA"){
+            python=python+arrayLexemas[con].replace(arrayLexemas[con],"")+"\n";
+            con++;
+            B();
+           }
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba ;");
+                con++;
+            }
+       }
+       ////FIN
+       //////////////////////////////////////////////////////////////////////////////
+       //////////////////////////////////CONSOLE.WRITE()/////////////////////////////
+       //////////////////////////////////////////////////////////////////////////////
+       //////////////////////////////////////////////////////////////////////////////
+
+
+       /////////////////////SENTENCIAS DE CONTROL Y REPETICION//////////////////////
+       /////////////////////////////////////////////////////////////////////////////
+       /////////////////////////////////////////////////////////////////////////////
+       function SECR(){
+            SECRE();
+       }
+       function SECRE(){
+        
+        //Si viene if
+        //alert("CUANDO ENTRA A SECRE() "+preanalisis[con]);
+        if(preanalisis[con]=="SENTENCIA_IF"){
+            python=python+arrayLexemas[con]+" ";
+            con++;
+            R();
+        }
+        //Si viene Switch
+        else if(preanalisis[con]=="SENTENCIA_SWITCH"){
+            //python=python+arrayLexemas[con]+" ";
+            python=python+arrayLexemas[con].replace(arrayLexemas[con],"def switch(case,var)");
+            con++;
+            SW();
+        }
+        else if(preanalisis[con]=="SENTENCIA_WHILE"){
+            python=python+arrayLexemas[con]+" ";
+            con++;
+            WH();
+        }
+        else if(preanalisis[con]=="SENTENCIA_FOR"){
+            python=python+arrayLexemas[con]+" ";
+            con++;
+            //alert("ENTRA A FO() "+preanalisis[con]);
+            FO();
+            
+        }
+        else if(preanalisis[con]=="SENTENCIA_DO"){
+            python=python+arrayLexemas[con].replace(arrayLexemas[con],"while True");
+            con++;
+            DO();
+        }else{
+          //Epsilon
+        }
+       }
+       //R->(IFCON){IFSEN}S
+       function R(){
+        //alert("CUANDO ENTRA A R "+preanalisis[con])
+        //Viene un despues del if ( del metodo anterior
+        if(preanalisis[con]=="PARENTESIS_IZQ"){
+            con++;
+           
+        }
+        else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba (");
+                con++;
+        }
+        IFCON(); //Condiciones del if
+        if(preanalisis[con]=="PARENTESIS_DER"){
+                
+                con++;
+        }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba )");
+                con++;
+        }
+        if(preanalisis[con]=="APERTURA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n"; //
+                con++;
+        }else{
+                erroresSintacticos.push("Se esperaba {");
+                con++;
+        }
+        IFSEN(); //Sentencias if
+        if(preanalisis[con]=="CERRADURA"){
+                con++;
+        }else{
+                erroresSintacticos.push("Se esperaba }");
+                con++;
+        }
+        //Cuando termina el if } me podira venir nada o else u otro if o demas instrucciones
+        //alert("AL ENTRAR ******* *** ** A S() "+preanalisis[con]);
+        S();//////////////////////////////////////////////////
+       }
+
+       //IFCON->T
+       function IFCON(){
+            //alert("CUANDO ENTRA A IFCON " + preanalisis[con]);
+            T();
+       }
+       //T->id U | num U | 'ol' U | ( V
+       function T(){
+            //alert("AL ENTRAR A T() "+preanalisis[con]);
+            if(preanalisis[con]=="ID"){
+                python=python+arrayLexemas[con];
+                con++;
+                U();
+
+            }else if(preanalisis[con]=="NUMERO"){
+                python=python+arrayLexemas[con];
+                con++;
+                U();
+
+            }else if(preanalisis[con]=="OPERADOR_LOGICO"){
+                if(arrayLexemas[con]=="&&"){
+                    python=python+arrayLexemas[con].replace(arrayLexemas[con],"And");
+                }else if(arrayLexemas[con]=="||"){
+                    python=python+arrayLexemas[con].replace(arrayLexemas[con],"Or");
+
+                }else if(arrayLexemas[con]=="!"){
+                    python=python+arrayLexemas[con].replace(arrayLexemas[con],"Not");
+
+                }
+                con++;
+                U();
+
+            }
+           
+            else if(preanalisis[con]=="PARENTESIS_IZQ"){
+               //alert("Entro despues de S");
+
+                con++;
+                V();
+
+            }
+            else{
+                //Posible error
+            }
+       } 
+       //U->'orel'X
+       function U(){
+           //Si viene un operador relacional es porque se va a comparar a algo
+            //alert("Al entrar a U() "+preanalisis[con]);
+            if(preanalisis[con]=="OPERADOR_RELACIONAL"){
+                python=python+arrayLexemas[con];
+                con++;
+                X();
+            }
+            else if(preanalisis[con]=="SUMA"){
+                python=python+arrayLexemas[con];
+                con++;
+                X();
+
+            }else if(preanalisis[con]=="RESTA"){
+                python=python+arrayLexemas[con];
+                con++;
+                X();
+
+            }
+            else if(preanalisis[con]=="MULTIPLICACION"){
+                python=python+arrayLexemas[con];
+                con++;
+                X();
+
+            }
+            else if(preanalisis[con]=="DIVISION"){
+                python=python+arrayLexemas[con];
+                con++;
+                X();
+
+            }else if(preanalisis[con]=="SIGNO_IGUAL"){
+                python=python+arrayLexemas[con];
+                con++;
+                X();
+            }
+            else{
+                //Me podria ir a otro metodo
+            }
+       }
+       //V->T)W
+       function V(){
+            //alert("Al entrar a V()"+preanalisis[con]);
+            T();
+            if(preanalisis[con]=="PARENTESIS_DER"){
+                con++;
+            }
+            else{
+
+            }
+            W();
+       }
+       function IFSEN(){
+           //alert("Al entrar a IFSEN() "+preanalisis[con]);
+           //SECRE();
+           B();
+
+       }
+       function X(){
+           //Me puedo comparar con un id,numero,cadena
+        //alert("AL ENTRAR A X()"+preanalisis[con]);
+        if(preanalisis[con]=="ID"){
+            python=python+arrayLexemas[con];
+            con++;
+            W();
+        }
+        else if(preanalisis[con]=="NUMERO"){
+            python=python+arrayLexemas[con];
+            con++;
+            W();
+        }
+        else if(preanalisis[con]=="CADENA"){
+            python=python+arrayLexemas[con];
+            con++;
+            W();
+        }
+        else{
+            //Posible Error
+        }
+        
+       }
+       //W->'oplogico' IFCON
+       function W(){
+        //alert("CUANDO ENTRA A W" + preanalisis[con]);
+        if(preanalisis[con]=="OPERADOR_LOGICO"){
+            if(arrayLexemas[con]=="&&"){
+                    python=python+arrayLexemas[con].replace(arrayLexemas[con],"And");
+            }else if(arrayLexemas[con]=="||"){
+                    python=python+arrayLexemas[con].replace(arrayLexemas[con],"Or");
+
+            }else if(arrayLexemas[con]=="!"){
+                    python=python+arrayLexemas[con].replace(arrayLexemas[con],"Not");
+
+            } 
+            con++;
+            //alert("CUANDO ENTRA A W" + preanalisis[con]);
+            IFCON();
+        }
+        else if(preanalisis[con]=="OPERADOR_RELACIONAL"){
+            python=python+arrayLexemas[con];
+            con++;
+            //alert("CUANDO ENTRA A W" + preanalisis[con]);
+            IFCON();
+        }
+        else{
+            //alert("SE SALE DE W()" + preanalisis[con]);
+            //Epsilon
+        }
+       }
+       //S-> else SS
+       function S()
+       {
+           if(preanalisis[con]=="SENTENCIA_ELSE"){
+            python=python+arrayLexemas[con];
+            con++;
+            SS();
+           }
+           else{
+
+           }
+           B();
+
+       }
+       function SS(){
+           ///Esta condicion se cumple solo si despues de un else viene if, seria un if else
+           if(preanalisis[con]=="SENTENCIA_IF"){
+                python=python+arrayLexemas[con];
+                python=python.replace("elseif","elif")+" ";
+                con++;
+                R();
+           }else if(preanalisis[con]=="APERTURA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+                con++;
+                SSE();
+
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba if o {");
+                con++;
+           }
+       }
+       function SSE(){
+
+           IFSEN();
+           if(preanalisis[con]=="CERRADURA"){
+            con++;
+           }
+           else{
+                erroresSintacticos.push("Se esperaba  }");
+                con++;
+           }
+           B();
+       }
+       ////////////////////PARA EL CICLO FOR/////////////
+       //FO->(FOC){SEN}....cualquier cos despues
+       function FO(){
+           if(preanalisis[con]=="PARENTESIS_IZQ"){
+                con++;
+           }
+           else{
+                erroresSintacticos.push("Se esperaba (");
+                con++;
+           }
+           FOC();
+           if(preanalisis[con]=="PARENTESIS_DER"){
+                con++;
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba )");
+                con++;
+           }
+           if(preanalisis[con]=="APERTURA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba {");
+                con++;
+           }
+           //Sentencias
+           //SECR();
+           python=python+" "+" ";
+           B();
+           python=python+" "+" ";
+           BC();////BREAK O CONTINUE
+           if(preanalisis[con]=="CERRADURA"){
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba }");
+                con++;
+           }
+           B();
+       }
+       function BC(){
+           if(preanalisis[con]=="SENTENCIA_CONTINUE"){
+               python=python+arrayLexemas[con];
+               con++;
+               BCE();
+
+           }else if(preanalisis[con]=="SENTENCIA_BREAK"){
+               python=python+arrayLexemas[con];
+               con++;
+               BCE();
+           }
+           else{
+
+           }
+       }
+       function BCE(){
+           if(preanalisis[con]=="PUNTO_Y_COMA"){
+            con++;
+           }
+           else{
+            erroresSintacticos.push(arrayLexemas[con]+" Se esperaba ;");
+            con++;
+           }
+
+       }
+       function FOC(){
+           if(preanalisis[con]=="TIPO_DE_DATO"){
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un tipo de dato");
+                con++;
+           }
+           if(preanalisis[con]=="ID"){
+                python=python+arrayLexemas[con]+" ";
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un identificador");
+                con++;
+           }
+           if(preanalisis[con]=="SIGNO_IGUAL"){
+                
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+ " Se esperaba =");
+                con++;
+           }
+           if(preanalisis[con]=="NUMERO"){
+                
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un numero");
+                con++;
+           }
+           if(preanalisis[con]=="PUNTO_Y_COMA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"in range");
+                con++;
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un ;");
+                con++;
+           }
+           //Si cumple todo lo anterior
+           FOCE();
+
+       }
+       //FOCE->id OR ; FOI
+       function FOCE(){
+            if(preanalisis[con]=="ID"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"(");
+                con++;
+            }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un id");
+                con++;
+            }
+            
+            if(preanalisis[con]=="OPERADOR_RELACIONAL"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],arrayLexemas[con-3]+",");
+                con++;
+            }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un operador relacional");
+                con++;
+            }
+            if(preanalisis[con]=="NUMERO"){
+                python=python+arrayLexemas[con]+")";
+                con++;
+            }
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un Numero");
+                con++;
+            }
+            if(preanalisis[con]=="PUNTO_Y_COMA"){
+                con++;
+            }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un ;");
+                con++;
+            }
+            FOI();
+       }
+       function FOI(){
+           if(preanalisis[con]=="ID"){
+                con++;
+                FOE();
+           }else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un identificador");
+                con++;
+           }
+
+       }
+       function FOE(){
+           if(preanalisis[con]=="SUMA"){
+               con++;
+               FOE1();
+           }
+           else if(preanalisis[con]=="RESTA"){
+               con++;
+               FOE1();
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba +,-");
+                con++;
+           }
+
+       }
+       //FOE1->+ FOE2 | - FOE2 | error
+       function FOE1(){
+        if(preanalisis[con]=="SUMA"){
+               con++;
+               FOE2();
+           }
+           else if(preanalisis[con]=="RESTA"){
+               con++;
+               FOE2();
+           }
+           else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba +,-");
+                con++;
+           }
+       }
+       function FOE2(){
+           //Epsilon
+       }
+      //////////////////////////////////////////////////////////////////////////
+      ///////////////////////////////SENTENCIA DE CONTROL SWITCH////////////////
+      /////////////////////////////////////////////////////////////////////////
+       //SW->(SWC){SWS}
+       function SW(){
+        if(preanalisis[con]=="PARENTESIS_IZQ"){
+            con++;
+        }else{
+            erroresSintacticos.push(arrayLexemas[con]+" Se esperaba (");
+            con++;
+        }
+        SWC();
+        if(preanalisis[con]=="PARENTESIS_DER"){
+            con++;
+        }else{
+            erroresSintacticos.push(")");
+            con++;
+        }
+        if(preanalisis[con]=="APERTURA"){
+            python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n"+"switcher = {"+"\n";
+            con++;
+        }else{
+            erroresSintacticos.push(arrayLexemas[con]+" Se esperaba {");
+            con++;
+        }
+        SWS(); //Sentencias adentro de switch
+        if(preanalisis[con]=="CERRADURA"){
+            python=python+arrayLexemas[con];
+            con++;
+        }else{
+            erroresSintacticos.push(arrayLexemas[con]+" Se esperaba }");
+            con++;
+        }
+
+       }
+       function SWC(){
+        if(preanalisis[con]=="ID"){
+            con++;
+        }else{
+            erroresSintacticos.push("Se esperaba un argumento");
+            con++;
+        }
+
+       }
+       function SWS(){//Sentencias adentro de switch
+         if(preanalisis[con]=="SENTENCIA_CASE"){
+            conSwi++;
+            con++;
+            SWA();
+            
+         }
+        
+         else{
+             //Epsilon
+         }
+       }
+       function SWA(){
+        //alert(preanalisis[con]);
+        if(preanalisis[con]=="NUMERO"){
+            python=python+arrayLexemas[con]+":"
+            con++;
+            SWB();
+        }
+        else if(preanalisis[con]=="CADENA_CHAR"){
+            python=python+arrayLexemas[con]+":"
+            con++;
+            SWB();
+
+        }
+        else{
+            erroresSintacticos.push(arrayLexemas[con]+" Se esperaba un caracter");
+            con++;
+        }
+       }
+       function SWB(){
+           if(preanalisis[con]=="DOS_PUNTOS"){
+               con++;
+               SWCC();
+
+           }
+           else{
+            erroresSintacticos.push(arrayLexemas[con]+" Se esperaba :");
+            con++;
+           }
+           
+        
+       }
+       function SWCC(){
+           B(); //Verifico si vienen otras sentencias
+           //alert("CUANDO SALE DE OTRAS SENTENCIAS :"+preanalisis[con]);
+           if(preanalisis[con]=="SENTENCIA_BREAK"){
+            con++;
+            SWD();
+           }
+           else{
+            SWE();
+           }
+       }
+       function SWD(){
+           //Solo si es break
+           if(preanalisis[con]=="PUNTO_Y_COMA"){
+            con++;
+            SWE();
+           }
+           else{
+            erroresSintacticos.push(arrayLexemas[con]+" Se esperaba ;");
+            con++;
+           }
+       }
+       function SWE(){
+           if(preanalisis[con]=="SENTENCIA_CASE"){
+            conSwi++;
+            con++;
+            SWA();
+           }
+           else if(preanalisis[con]=="SENTENCIA_DEFAULT"){
+            python=python+arrayLexemas[con].replace(arrayLexemas[con],conSwi+1+":")
+            
+            con++;
+            SWF();
+           }
+       }
+       function SWF(){
+           if(preanalisis[con]=="DOS_PUNTOS"){
+                con++;
+                B();
+           }
+           else{
+            erroresSintacticos.push(arrayLexemas[con]+ " Se esperaba :");
+            con++;
+           }
+       }
+       ////////////////////////////////////////////////////////////////
+       //////////////////////////////WHILE/////////////////////////////
+       ////////////////////////////////////////////////////////////////
+       function WH(){
+           if(preanalisis[con]=="PARENTESIS_IZQ"){
+                con++;
+            }
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba (");
+                con++;
+            }
+            IFCON();//Condiciones mismas que el if
+            if(preanalisis[con]=="PARENTESIS_DER"){
+                con++;
+            }
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba )");
+                con++;
+            }
+            if(preanalisis[con]=="APERTURA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+                con++;
+            }
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba {");
+                con++;
+            }
+            python=python+" "+" ";
+            B();
+            //python=python+" "+" ";
+            BC();
+            if(preanalisis[con]=="CERRADURA"){
+                con++;
+            }
+            else{
+                erroresSintacticos.push(arrayLexemas[con]+" Se esperaba }");
+                con++;
+            }
+            B();//Despues de while, puede venir cualquier cosa
+           
+       }
+       function DO(){
+        if(preanalisis[con]=="APERTURA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+                con++;
+            }
+            else{
+                erroresSintacticos.push("Se esperaba {");
+                con++;
+            }
+            B();
+            BC();
+            if(preanalisis[con]=="CERRADURA"){
+                
+                con++;
+            }
+            else{
+                erroresSintacticos.push("Se esperaba }");
+                con++;
+            }
+            if(preanalisis[con]=="SENTENCIA_WHILE"){
+                con++;
+                WH2();
+            }
+            else{
+                erroresSintacticos.push("Se esperaba WHILE");
+                con++;
+            }
+       }
+      function WH2(){
+        if(preanalisis[con]=="PARENTESIS_IZQ"){
+           
+                con++;
+            }
+            else{
+                erroresSintacticos.push("Se esperaba (");
+                con++;
+            }
+            IFCON();//Condiciones mismas que el if
+            alert(arrayLexemas[con-3]+arrayLexemas[con-2]+arrayLexemas[con-1]);
+            python=python.replace(arrayLexemas[con-3]+arrayLexemas[con-2]+arrayLexemas[con-1],"");
+            if(preanalisis[con]=="PARENTESIS_DER"){
+                python=python+" "+arrayLexemas[con].replace(arrayLexemas[con],arrayLexemas[con-3]+"="+arrayLexemas[con-3]+"+1"+"\n");   
+                con++;
+            }
+            else{
+                erroresSintacticos.push("Se esperaba )");
+                con++;
+            }
+            if(preanalisis[con]=="PUNTO_Y_COMA"){
+                python=python+arrayLexemas[con].replace(arrayLexemas[con],"if("+arrayLexemas[con-4]+arrayLexemas[con-3]+arrayLexemas[con-2]+"):\n"+"break");   
+                //python=python+arrayLexemas[con].replace(arrayLexemas[con],":")+"\n";
+                con++;
+            }
+            else{
+                erroresSintacticos.push("Se esperaba ;");
+                con++;
+            }
+            B();//Despues de while, puede venir cualquier cosa
+      }
+      function TRADUCIR(){
+         document.getElementById("txtBitacora").value=python;
+         //alert(variables);
+         //alert(variables2);
+         //alert(arrayTokens2);
+      }
+      function MOSTRAR(){
+          for(i in arrayTokens){
+              if(arrayTokens[i]=="CADENA_CHAR"){
+                html=html+arrayLexemas[i]+"\n";
+              }
+          }
+          document.getElementById("txtBitacora").value=html;
+      }
+
+       
+
+   </script>
+</body>
+</html>
